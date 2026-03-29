@@ -98,7 +98,7 @@ export default function AppShell({ page, navigate, children }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#0f4c8a',
   },
   header: {
     flexDirection: 'row',
@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f4c8a',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    marginTop: 25,
   },
   headerLeft: {},
   pageTitle: {
