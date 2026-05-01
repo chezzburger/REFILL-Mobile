@@ -1,8 +1,13 @@
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import Constants from 'expo-constants'
 
-// Replace VITE_API_BASE_URL with your actual backend URL
-const API_BASE_URL = 'http://192.168.18.40:8000/api'
+// Set EXPO_PUBLIC_API_URL in your .env file, e.g.:
+//   EXPO_PUBLIC_API_URL=http://192.168.1.x:8000/api
+const API_BASE_URL =
+  Constants.expoConfig?.extra?.apiUrl ||
+  process.env.EXPO_PUBLIC_API_URL ||
+  'http://127.0.0.1:8000/api'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

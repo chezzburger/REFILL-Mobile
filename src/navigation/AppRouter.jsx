@@ -18,7 +18,7 @@ const SHELL_PAGES = ['home', 'browse', 'history', 'track', 'profile']
 
 export default function AppRouter() {
   const { user, loading } = useAuth()
-  const [page, setPage] = useState('welcome')
+  const [page, setPage] = useState('home')
   const [pageProps, setPageProps] = useState({})
 
   if (loading) {

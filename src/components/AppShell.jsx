@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  SafeAreaView, Modal, ScrollView
+  SafeAreaView, Modal, Platform
 } from 'react-native'
 import { useAuth } from '../context/AuthContext'
 import { useOrders } from '../context/OrdersContext'
@@ -98,7 +98,7 @@ export default function AppShell({ page, navigate, children }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#0f4c8a',
   },
   header: {
     flexDirection: 'row',
@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f4c8a',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    paddingTop: Platform.OS === 'android' ? 40 : 12, 
   },
   headerLeft: {},
   pageTitle: {
@@ -167,7 +168,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#e2e8f0',
-    paddingBottom: 4,
+    height: Platform.OS === 'android' ? 70 : 85,
+    paddingBottom: Platform.OS === 'android' ? 10 : 30,
+    elevation: 10, 
   },
   tabItem: {
     flex: 1,

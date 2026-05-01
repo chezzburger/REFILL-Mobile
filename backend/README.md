@@ -256,6 +256,72 @@ CSRF token missing or incorrect
 
 **Solution:** Ensure frontend includes `X-CSRFToken` header with requests.
 
+## API Testing with httpie
+
+Install httpie if you haven't already:
+
+```bash
+pip install httpie
+```
+
+### Register a new user
+
+```bash
+http POST http://127.0.0.1:8000/api/auth/users/ \
+  username=testuser \
+  password=testpass123 \
+  re_password=testpass123
+```
+
+### Login and get token
+
+```bash
+http POST http://127.0.0.1:8000/api/auth/token/login/ \
+  username=testuser \
+  password=testpass123
+```
+
+Copy the `auth_token` from the response for use in the requests below.
+
+### Get all products (stations)
+
+```bash
+http GET http://127.0.0.1:8000/api/products/ \
+  "Authorization: Token YOUR_TOKEN_HERE"
+```
+
+### Create an order
+
+```bash
+http POST http://127.0.0.1:8000/api/orders/ \
+  "Authorization: Token YOUR_TOKEN_HERE" \
+  shipping_address="123 Sample St, Cagayan de Oro" \
+  status="pending" \
+  notes="2x Purified from AquaPure"
+```
+
+### Get your orders
+
+```bash
+http GET http://127.0.0.1:8000/api/orders/ \
+  "Authorization: Token YOUR_TOKEN_HERE"
+```
+
+### Update order status (staff only)
+
+```bash
+http PATCH http://127.0.0.1:8000/api/orders/1/ \
+  "Authorization: Token YOUR_TOKEN_HERE" \
+  status="processing"
+```
+
+### Get your profile
+
+```bash
+http GET http://127.0.0.1:8000/api/users/profiles/me/ \
+  "Authorization: Token YOUR_TOKEN_HERE"
+```
+
 ## Dependencies
 
 - **Django** - Web framework
