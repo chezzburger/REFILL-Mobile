@@ -3,14 +3,26 @@ import {
   SafeAreaView, Image, StatusBar
 } from 'react-native'
 
+import logo from '../../assets/logo.png';
+import waterBg from '../../assets/water-bg.png';
+
 export default function WelcomeScreen({ navigate }) {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
-      <View style={styles.content}>
-        <View style={styles.brandBlock}>
-          <Text style={styles.logo}>💧</Text>
-          <Text style={styles.brandName}>REFILL ON WHEELS</Text>
+
+      {/* Background Image (The water splash) */}
+      <Image source={waterBg} style={styles.background} resizeMode="cover" />
+      
+      <View style={styles.overlay}>
+        {/* LOGO AND BRAND BLOCK */}
+        <View style={styles.brandHeader}>
+          <Image 
+            source={logo} 
+            style={styles.logoImage} 
+            resizeMode="contain" 
+          />
+          <Text style={styles.brandNameText}>REFILL ON WHEELS</Text>
         </View>
 
         <Text style={styles.title}>Your Ultimate Water{'\n'}Delivery Solution</Text>
@@ -31,25 +43,32 @@ export default function WelcomeScreen({ navigate }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#0f4c8a',
+    backgroundColor: '#0f4c8a', // Fallback color
   },
-  content: {
+  background: {
+    ...StyleSheet.absoluteFillObject, // Makes the water-bg fill the whole screen
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
     flex: 1,
+    backgroundColor: 'rgba(15, 76, 138, 0.5)', // Adds a slight blue tint so text is readable
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
   },
-  brandBlock: {
+  brandHeader: {
     alignItems: 'center',
     marginBottom: 32,
   },
-  logo: {
-    fontSize: 72,
-    marginBottom: 8,
+  logoImage: {
+    width: 100, // Explicit size required for images
+    height: 100,
+    marginBottom: 12,
   },
-  brandName: {
+  brandNameText: {
     color: '#fff',
     fontSize: 22,
     fontWeight: '800',
@@ -64,7 +83,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   subtitle: {
-    color: 'rgba(255,255,255,0.75)',
+    color: 'rgba(255,255,255,0.85)',
     fontSize: 15,
     textAlign: 'center',
     fontStyle: 'italic',
@@ -88,7 +107,7 @@ const styles = StyleSheet.create({
   },
   btnOutline: {
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: 'rgba(255,255,255,0.7)',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',

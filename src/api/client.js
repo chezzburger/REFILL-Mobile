@@ -2,7 +2,7 @@ import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 // Replace VITE_API_BASE_URL with your actual backend URL
-const API_BASE_URL = 'http://192.168.18.40:8000/api'
+const API_BASE_URL = 'http://192.168.0.100:8000/api'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
