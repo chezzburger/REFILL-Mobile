@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
     const { auth_token } = res.data
     await AsyncStorage.setItem('authToken', auth_token)
 
-    const userRes = await apiClient.get('/auth/users/me/')
+    const userRes = await apiClient.get('/users/users/me/')
     const userData = userRes.data
     await AsyncStorage.setItem('authUser', JSON.stringify(userData))
     setUser(userData)
@@ -49,3 +49,4 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext)
+ 

@@ -5,10 +5,12 @@ Built with Django 4.1 + Django REST Framework (Running on Django 6.0 compatible 
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
-SECRET_KEY = 'django-insecure-your-secret-key-change-in-production'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-key')
 
 DEBUG = True
 
@@ -120,7 +122,12 @@ REST_FRAMEWORK = {
 DJOSER = {
     'LOGIN_FIELD': 'username',
     'TOKEN_MODEL': 'rest_framework.authtoken.models.Token',
-    'USER_CREATE_PASSWORD_RETYPE': True,  
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    'SEND_ACTIVATION_EMAIL': True,
+    'ACTIVATION_URL': 'activate/{uid}/{token}',
+    'SERIALIZERS': {
+        'user_create': 'apps.users.serializers.UserCreateSerializer',
+    },
 }
 
 CORS_ALLOWED_ORIGINS = [
@@ -138,6 +145,15 @@ CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_HTTPONLY = False 
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
+
+# ── Email via Gmail SMTP ───────────────────────────────────
+EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST          = 'smtp.gmail.com'
+EMAIL_PORT          = 587
+EMAIL_USE_TLS       = True
+EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL  = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.mysql.features import DatabaseFeatures

@@ -28,6 +28,8 @@ export default function ProfileScreen({ navigate }) {
   const [ratings, setRatings] = useState({ app: 0 })
   const [settings, setSettings] = useState({ sms: true, email: true })
   const [loading, setLoading] = useState(true)
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false)
+  const [deactivating, setDeactivating] = useState(false)
 
   const updateLocalState = (data) => {
     setAccountData({
@@ -146,16 +148,15 @@ export default function ProfileScreen({ navigate }) {
     } catch { Alert.alert('Error', 'Failed to set default address.') }
   }
 
-  const handleDeactivate = () => {
-    Alert.alert('Deactivate Account', 'Are you sure you want to deactivate your account?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Deactivate', style: 'destructive', onPress: async () => {
-        try {
-          await apiClient.post('/users/profiles/deactivate/')
-          logout(); navigate('welcome')
-        } catch { Alert.alert('Error', 'Failed to deactivate account.') }
-      }}
-    ])
+  const handleDeactivate = async () => {
+    if (!confirmDeactivate) { setConfirmDeactivate(true); return }
+    setDeactivating(true)
+    try {
+      await apiClient.post('/users/profiles/deactivate/')
+      logout(); navigate('welcome')
+    } catch {
+      setConfirmDeactivate(false)
+    } finally { setDeactivating(false) }
   }
 
   const handleSaveAppRating = async (ratingVal) => {
@@ -321,10 +322,35 @@ export default function ProfileScreen({ navigate }) {
           <Text style={styles.menuItemText}>Change Password</Text>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.menuItem, styles.dangerItem]} onPress={handleDeactivate}>
-          <Text style={[styles.menuItemText, { color: '#dc2626' }]}>Deactivate Account</Text>
-          <Text style={styles.chevron}>›</Text>
-        </TouchableOpacity>
+
+        {confirmDeactivate ? (
+          <View style={styles.deactivateConfirm}>
+            <Text style={styles.deactivateWarning}>⚠️ This will permanently delete your account. Are you sure?</Text>
+            <View style={styles.deactivateBtns}>
+              <TouchableOpacity
+                style={styles.deactivateCancelBtn}
+                onPress={() => setConfirmDeactivate(false)}
+                disabled={deactivating}
+              >
+                <Text style={styles.deactivateCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deactivateConfirmBtn}
+                onPress={handleDeactivate}
+                disabled={deactivating}
+              >
+                <Text style={styles.deactivateConfirmText}>
+                  {deactivating ? 'Deleting…' : 'Yes, Delete'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <TouchableOpacity style={[styles.menuItem, styles.dangerItem]} onPress={handleDeactivate}>
+            <Text style={[styles.menuItemText, { color: '#dc2626' }]}>Deactivate Account</Text>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* ── Password Modal ── */}
@@ -455,6 +481,13 @@ const styles = StyleSheet.create({
   settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   settingLabel: { fontSize: 14, color: '#334155', fontWeight: '500' },
   dangerItem: { borderBottomWidth: 0 },
+  deactivateConfirm:    { padding: 14, backgroundColor: '#fff5f5', borderRadius: 10, margin: 4, borderWidth: 1, borderColor: '#fca5a5' },
+  deactivateWarning:    { fontSize: 13, color: '#dc2626', marginBottom: 10 },
+  deactivateBtns:       { flexDirection: 'row', gap: 8 },
+  deactivateCancelBtn:  { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', alignItems: 'center' },
+  deactivateCancelText: { fontSize: 13, fontWeight: '600', color: '#64748b' },
+  deactivateConfirmBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: '#dc2626', alignItems: 'center' },
+  deactivateConfirmText:{ fontSize: 13, fontWeight: '700', color: '#fff' },
   input: { borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#0f172a', marginBottom: 10 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 24 },
   modalCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20 },

@@ -14,42 +14,41 @@ const SORT_OPTIONS = [
   { id: 'rating',   label: 'Top Rated' },
 ]
 
-const SAMPLE_STATIONS = [
-  { id: 1, name: 'AquaPure Station',    icon: '💧', distance: '0.5 km', pricePerGallon: 25, deliveryFee: 20, eta: '15–20 min', rating: 4.8, waterTypes: ['Purified','Alkaline'], open: true  },
-  { id: 2, name: 'Crystal Clear Water', icon: '🌊', distance: '1.2 km', pricePerGallon: 23, deliveryFee: 25, eta: '20–25 min', rating: 4.6, waterTypes: ['Purified','Mineral'],  open: true  },
-  { id: 3, name: 'Blue Spring Refill',  icon: '⛲', distance: '2.0 km', pricePerGallon: 28, deliveryFee: 15, eta: '25–30 min', rating: 4.9, waterTypes: ['Alkaline','Mineral'],  open: false },
-  { id: 4, name: 'H2O Express',         icon: '⚡', distance: '2.5 km', pricePerGallon: 22, deliveryFee: 30, eta: '10–15 min', rating: 4.5, waterTypes: ['Purified'],           open: true  },
-  { id: 5, name: 'Pure Drop Refill',    icon: '🔵', distance: '3.1 km', pricePerGallon: 26, deliveryFee: 18, eta: '20–30 min', rating: 4.7, waterTypes: ['Alkaline'],           open: true  },
-  { id: 6, name: 'Mountain Spring Co.', icon: '⛰️', distance: '3.8 km', pricePerGallon: 30, deliveryFee: 20, eta: '30–40 min', rating: 4.9, waterTypes: ['Mineral'],            open: true  },
-]
-const ICONS = ['💧','🌊','⛲','⚡','🔵','⛰️']
+const ICONS = ['💧','🌊','⛲','⚡','🔵','⛰️','🫧','🏔️']
+
+const toStation = (p, i) => ({
+  id:             p.id,
+  name:           p.name,
+  icon:           ICONS[i % ICONS.length],
+  distance:       '—',
+  pricePerGallon: parseFloat(p.price) || 0,
+  deliveryFee:    parseFloat(p.delivery_fee) || 0,
+  eta:            p.eta || '—',
+  rating:         null,
+  waterTypes:     p.category_name ? [p.category_name] : ['Purified'],
+  open:           p.is_active !== false,
+})
 
 export default function BrowseScreen({ navigate }) {
-  const [stations, setStations] = useState(SAMPLE_STATIONS)
-  const [filter, setFilter] = useState('All')
-  const [search, setSearch] = useState('')
-  const [sortBy, setSortBy] = useState('distance')
+  const [stations,  setStations]  = useState([])
+  const [loading,   setLoading]   = useState(true)
+  const [filter,    setFilter]    = useState('All')
+  const [search,    setSearch]    = useState('')
+  const [sortBy,    setSortBy]    = useState('distance')
   const [selectedStation, setSelectedStation] = useState(null)
 
-  useEffect(() => {
-    productsAPI.getAll().then(r => {
-      const data = Array.isArray(r.data) ? r.data : r.data?.results || []
-      if (data.length) {
-        setStations(data.map((p, i) => ({
-          id: p.id,
-          name: p.name,
-          icon: ICONS[i % 6],
-          distance: `${(Math.random() * 3 + 0.3).toFixed(1)} km`,
-          pricePerGallon: parseFloat(p.price) || 25,
-          deliveryFee: 20,
-          eta: '15–25 min',
-          rating: parseFloat((4.4 + Math.random() * 0.6).toFixed(1)),
-          waterTypes: p.category ? [p.category] : ['Purified'],
-          open: p.is_active !== false,
-        })))
-      }
-    }).catch(() => {})
-  }, [])
+  const fetchStations = () => {
+    setLoading(true)
+    productsAPI.getAll()
+      .then(r => {
+        const data = Array.isArray(r.data) ? r.data : (r.data?.results || [])
+        setStations(data.map(toStation))
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { fetchStations() }, [])
 
   const displayed = stations
     .filter(s => filter === 'All' || s.waterTypes.includes(filter))
@@ -103,10 +102,14 @@ export default function BrowseScreen({ navigate }) {
       <Text style={styles.resultsMeta}>{displayed.length} station{displayed.length !== 1 ? 's' : ''} found</Text>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {displayed.length === 0 ? (
+        {loading ? (
+          <ActivityIndicator color="#0f4c8a" style={{ marginTop: 48 }} />
+        ) : displayed.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>💧</Text>
-            <Text style={styles.emptyText}>No stations match your filters</Text>
+            <Text style={styles.emptyText}>
+              {stations.length === 0 ? 'No stations available yet.' : 'No stations match your filters'}
+            </Text>
           </View>
         ) : (
           displayed.map(s => (
@@ -122,7 +125,6 @@ export default function BrowseScreen({ navigate }) {
                   </View>
                 </View>
                 <View style={styles.cardRight}>
-                  <Text style={styles.cardRating}>⭐ {s.rating}</Text>
                   {!s.open && <Text style={styles.closedTag}>Closed</Text>}
                 </View>
               </View>

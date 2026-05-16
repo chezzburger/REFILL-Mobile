@@ -114,9 +114,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def deactivate(self, request):
         user = request.user
-        user.is_active = False 
-        user.save()
-        return Response({"success": "Account deactivated"}, status=status.HTTP_200_OK)
+        user.delete()
+        return Response({"success": "Account deleted"}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

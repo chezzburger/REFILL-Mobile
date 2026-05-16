@@ -54,9 +54,34 @@ class OrderViewSet(viewsets.ModelViewSet):
         if order.user != request.user and not request.user.is_staff:
             raise PermissionDenied("You can only edit your own orders.")
 
+        old_status = order.status
         serializer = self.get_serializer(order, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        # Reduce stock when order is marked as delivered
+        new_status = serializer.data.get('status', old_status)
+        if old_status != 'delivered' and new_status == 'delivered':
+            from apps.products.models import Product
+            # Try linked product first
+            for item in order.items.all():
+                if item.product:
+                    item.product.stock = max(0, item.product.stock - item.quantity)
+                    item.product.save(update_fields=['stock'])
+                    break
+            else:
+                # Fall back: parse station name from order notes e.g. "1x Purified from AquaPure"
+                notes = order.notes or ''
+                if ' from ' in notes:
+                    station_name = notes.split(' from ', 1)[-1].strip()
+                    qty = order.items.first().quantity if order.items.exists() else 1
+                    try:
+                        product = Product.objects.get(name=station_name)
+                        product.stock = max(0, product.stock - qty)
+                        product.save(update_fields=['stock'])
+                    except Product.DoesNotExist:
+                        pass
+
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
@@ -221,3 +246,4 @@ class NotificationViewSet(viewsets.ModelViewSet):
     def mark_all_read(self, request):
         self.get_queryset().filter(is_read=False).update(is_read=True)
         return Response({'status': 'all notifications marked as read'})
+    

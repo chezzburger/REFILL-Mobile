@@ -16,9 +16,12 @@ export default function RegisterScreen({ navigate }) {
   const set = (k) => (val) => setForm(f => ({ ...f, [k]: val }))
 
   const handleRegister = async () => {
-    if (!form.username || !form.password) { setError('Username and password are required'); return }
-    if (form.password !== form.confirm)   { setError('Passwords do not match'); return }
+    if (!form.username)                   { setError('Username is required'); return }
+    if (!form.email)                      { setError('Email is required'); return }
+    if (!/\S+@\S+\.\S+/.test(form.email)) { setError('Please enter a valid email address'); return }
+    if (!form.password)                   { setError('Password is required'); return }
     if (form.password.length < 8)         { setError('Password must be at least 8 characters'); return }
+    if (form.password !== form.confirm)   { setError('Passwords do not match'); return }
 
     setLoading(true); setError('')
     try {
@@ -28,10 +31,11 @@ export default function RegisterScreen({ navigate }) {
         password: form.password,
         re_password: form.confirm,
       })
-      navigate('login', { message: 'Account created successfully. Please login.' })
+      navigate('login', { message: 'Account created! Check your email to verify before logging in.' })
     } catch (e) {
       const data = e.response?.data
       if (data?.username) setError(`Username: ${data.username[0]}`)
+      else if (data?.email)    setError(`Email: ${data.email[0]}`)
       else if (data?.password) setError(`Password: ${data.password[0]}`)
       else setError('Registration failed. Please try again.')
     } finally { setLoading(false) }
@@ -62,7 +66,7 @@ export default function RegisterScreen({ navigate }) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Email <Text style={styles.opt}>(optional)</Text></Text>
+            <Text style={styles.label}>Email</Text>
             <TextInput style={styles.input} placeholder="your@email.com"
               placeholderTextColor="#94a3b8" value={form.email}
               onChangeText={set('email')} keyboardType="email-address" autoCapitalize="none" />
@@ -133,3 +137,4 @@ const styles = StyleSheet.create({
   switchText: { color: '#64748b', fontSize: 14 },
   linkText: { color: '#0f4c8a', fontSize: 14, fontWeight: '600' },
 })
+ 

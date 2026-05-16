@@ -18,8 +18,8 @@ export default function LoginScreen({ navigate }) {
     if (!form.username || !form.password) { setError('Please fill in all fields'); return }
     setLoading(true); setError('')
     try {
-      await login(form.username, form.password)
-      navigate('home')
+      const userData = await login(form.username, form.password)
+      navigate(userData?.is_staff ? 'admin' : 'home')
     } catch {
       setError('Invalid username or password')
     } finally { setLoading(false) }
@@ -137,3 +137,4 @@ const styles = StyleSheet.create({
   switchText: { color: '#64748b', fontSize: 14 },
   linkText: { color: '#0f4c8a', fontSize: 14, fontWeight: '600' },
 })
+ 

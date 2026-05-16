@@ -15,13 +15,22 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 class ProductViewSet(viewsets.ModelViewSet):
     """ViewSet for Product model"""
-    queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filterset_fields = ['category', 'is_active']
     search_fields = ['name', 'description']
     ordering_fields = ['price', 'created_at']
     ordering = ['-created_at']
+
+    def get_queryset(self):
+        # Staff see all products; regular users only see active ones
+        if self.request.user.is_staff:
+            return Product.objects.all()
+        return Product.objects.filter(is_active=True)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
 
 
 class StationReviewViewSet(viewsets.ModelViewSet):
@@ -70,3 +79,4 @@ class StationReviewViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("You can only delete your own reviews.")
         review.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    

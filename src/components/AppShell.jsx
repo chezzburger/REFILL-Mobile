@@ -8,16 +8,18 @@ import { useOrders } from '../context/OrdersContext'
 import { useNotifications } from '../context/NotificationContext'
 import NotificationModal from '../modals/NotificationModal'
 
-const NAV = [
+const BASE_NAV = [
   { id: 'home',    icon: '🏠', label: 'Home'     },
   { id: 'browse',  icon: '🛒', label: 'Browse'   },
   { id: 'history', icon: '📋', label: 'Orders'   },
   { id: 'track',   icon: '📍', label: 'Track'    },
   { id: 'profile', icon: '👤', label: 'Profile'  },
 ]
+const ADMIN_TAB = { id: 'admin', icon: '🛡️', label: 'Admin' }
 
 export default function AppShell({ page, navigate, children }) {
   const { user, logout } = useAuth()
+  const NAV = user?.is_staff ? [ADMIN_TAB] : BASE_NAV
   const { orders } = useOrders()
   const { unreadCount, fetchNotifications } = useNotifications()
   const [showNotifs, setShowNotifs] = useState(false)
@@ -197,3 +199,4 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
 })
+ 

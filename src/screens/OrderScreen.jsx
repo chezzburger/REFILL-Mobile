@@ -49,6 +49,10 @@ export default function OrderScreen({ navigate, station }) {
       shipping_address: address,
       status: 'pending',
       notes: `${qty}x ${type} from ${station.name}`,
+      items: [
+        { quantity: qty, price: station.pricePerGallon },
+        ...(station.deliveryFee > 0 ? [{ quantity: 1, price: station.deliveryFee }] : []),
+      ],
     })
     if (!result.success) {
       const e = result.errors || {}
@@ -56,11 +60,6 @@ export default function OrderScreen({ navigate, station }) {
       setStep(1); setLoading(false); return
     }
     const newOrderId = result.data.id
-    try {
-      await ordersAPI.items.create(newOrderId, {
-        product_id: station.id, quantity: qty, price: station.pricePerGallon,
-      })
-    } catch {}
     if (noteText.trim()) {
       try { await ordersAPI.notes.create(newOrderId, { content: noteText.trim(), note_type: 'customer' }) }
       catch {}

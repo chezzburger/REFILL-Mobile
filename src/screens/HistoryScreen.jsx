@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ScrollView, ActivityIndicator, Alert
+  ScrollView, ActivityIndicator,
 } from 'react-native'
 import { useOrders } from '../context/OrdersContext'
 import { ordersAPI } from '../api/orders'
@@ -18,26 +18,20 @@ const STATUS_COLOR = {
 
 export default function HistoryScreen({ navigate }) {
   const { orders, loading, fetchOrders } = useOrders()
-  const [hiding, setHiding] = useState(false)
+  const [hiding,       setHiding]       = useState(false)
+  const [confirmingId, setConfirmingId] = useState(null)
 
   const getStyle = (status) =>
     STATUS_COLOR[status?.toLowerCase()] || { bg: '#f1f5f9', color: '#64748b' }
 
-  const handleHide = (id) => {
-    Alert.alert('Delete Order', 'Are you sure you want to delete this order?', [
-      { text: 'Keep', style: 'cancel' },
-      {
-        text: 'Delete', style: 'destructive',
-        onPress: async () => {
-          setHiding(true)
-          try {
-            await ordersAPI.hide(id)
-            await fetchOrders()
-          } catch {}
-          finally { setHiding(false) }
-        }
-      }
-    ])
+  const handleHide = async (id) => {
+    if (confirmingId !== id) { setConfirmingId(id); return }
+    setHiding(true); setConfirmingId(null)
+    try {
+      await ordersAPI.hide(id)
+      await fetchOrders()
+    } catch {}
+    finally { setHiding(false) }
   }
 
   if (loading) return (
@@ -67,7 +61,9 @@ export default function HistoryScreen({ navigate }) {
           {orders.map(o => {
             const s = getStyle(o.status)
             const label = o.station || o.notes || o.shipping_address || '—'
-            const qty = o.qty || o.quantity || '—'
+            const qty = Array.isArray(o.items) && o.items.length > 0
+              ? (o.items[0].quantity || o.items[0].qty || '—')
+              : (o.qty || o.quantity || '—')
             const total = fmt(o.total || o.total_price || 0)
             const date = o.date || o.created_at?.slice(0, 10) || '—'
             const isActive = ['pending', 'processing', 'shipped'].includes(o.status?.toLowerCase())
@@ -100,9 +96,29 @@ export default function HistoryScreen({ navigate }) {
                     <Text style={styles.actionBtnText}>↻ Reorder</Text>
                   </TouchableOpacity>
                   {isDone && (
-                    <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleHide(o.id)}>
-                      <Text style={[styles.actionBtnText, styles.deleteBtnText]}>✕ Delete</Text>
-                    </TouchableOpacity>
+                    confirmingId === o.id ? (
+                      <View style={styles.confirmRow}>
+                        <TouchableOpacity
+                          style={[styles.actionBtn, styles.deleteBtn]}
+                          onPress={() => handleHide(o.id)}
+                          disabled={hiding}
+                        >
+                          <Text style={[styles.actionBtnText, styles.deleteBtnText]}>
+                            {hiding ? '…' : '✓ Confirm'}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.actionBtn}
+                          onPress={() => setConfirmingId(null)}
+                        >
+                          <Text style={styles.actionBtnText}>✕ Cancel</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleHide(o.id)}>
+                        <Text style={[styles.actionBtnText, styles.deleteBtnText]}>✕ Delete</Text>
+                      </TouchableOpacity>
+                    )
                   )}
                 </View>
               </View>
@@ -149,4 +165,5 @@ const styles = StyleSheet.create({
   actionBtnText: { fontSize: 12, color: '#334155', fontWeight: '600' },
   deleteBtn: { borderColor: '#fca5a5' },
   deleteBtnText: { color: '#dc2626' },
+  confirmRow: { flexDirection: 'row', gap: 6 },
 })

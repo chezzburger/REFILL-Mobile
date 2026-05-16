@@ -1,6 +1,22 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import UserProfile, UserAddress
+from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
+
+class UserCreateSerializer(BaseUserCreateSerializer):
+    email = serializers.EmailField(required=True)
+
+    class Meta(BaseUserCreateSerializer.Meta):
+        fields = ['username', 'email', 'password', 're_password']
+
+    def validate_email(self, value):
+        value = value.strip().lower()
+        if not value:
+            raise serializers.ValidationError("Email is required.")
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("An account with this email already exists.")
+        return value
+
 
 class UserAddressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,3 +39,4 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'avatar_type', 'avatar_seed', 'points', 'sms_notifications', 
             'email_notifications', 'addresses', 'app_rating', 'rated_stations'
         ]
+        

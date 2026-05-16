@@ -5,7 +5,7 @@ from apps.products.serializers import ProductSerializer
 class OrderItemSerializer(serializers.ModelSerializer):
 
     product    = ProductSerializer(read_only=True)        
-    product_id = serializers.IntegerField(write_only=True) 
+    product_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     subtotal   = serializers.DecimalField(                 
                      max_digits=10, decimal_places=2, read_only=True)
 
@@ -30,6 +30,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
    
     def validate_product_id(self, value):
+        if value is None:
+            return value
         from apps.products.models import Product
         try:
             product = Product.objects.get(id=value)
@@ -133,3 +135,4 @@ class NotificationSerializer(serializers.ModelSerializer):
         model  = Notification
         fields = ['id', 'order_id', 'notif_type', 'message', 'is_read', 'created_at']
         read_only_fields = ['id', 'order_id', 'notif_type', 'message', 'created_at']
+        

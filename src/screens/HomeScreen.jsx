@@ -14,14 +14,14 @@ const toStation = (product) => ({
   id:             product.id,
   name:           product.name,
   description:    product.description || '',
-  waterTypes:     product.category ? [product.category] : [],
-  pricePerGallon: parseFloat(product.price ?? 0),
-  deliveryFee:    0,
-  eta:            '—',
+  waterTypes:     product.category_name ? [product.category_name] : ['Purified'],
+  pricePerGallon: parseFloat(product.price) || 0,
+  deliveryFee:    parseFloat(product.delivery_fee) || 0,
+  eta:            product.eta || '—',
   distance:       '—',
   rating:         null,
   stock:          product.stock ?? 0,
-  open:           product.is_active ?? true,
+  open:           product.is_active !== false,
 })
 
 const QUICK_ACTIONS = [
@@ -42,8 +42,9 @@ export default function HomeScreen({ navigate }) {
     const fetchStations = async () => {
       setLoading(true); setStationsError(null)
       try {
-        const res = await productsAPI.getAll({ is_active: true })
+        const res = await productsAPI.getAll()
         const data = res.data
+        console.log('[HomeScreen] products response:', JSON.stringify(data))
         const list = Array.isArray(data) ? data : (data.results ?? [])
         setStations(list.map(toStation))
       } catch {
@@ -151,8 +152,8 @@ export default function HomeScreen({ navigate }) {
         )}
         {recentOrders.map(o => {
           const label = o.notes || o.shipping_address || 'Water Station'
-          const qty = Array.isArray(o.items)
-            ? o.items.reduce((sum, item) => sum + (item.quantity || item.qty || 0), 0)
+          const qty = Array.isArray(o.items) && o.items.length > 0
+            ? (o.items[0].quantity || o.items[0].qty || 0)
             : (o.qty || o.quantity || 0)
           const total = o.total_price || o.total || 0
           return (

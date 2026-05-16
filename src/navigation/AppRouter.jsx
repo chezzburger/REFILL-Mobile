@@ -14,7 +14,9 @@ import ProfileScreen   from '../screens/ProfileScreen'
 import OrderScreen     from '../screens/OrderScreen'
 import ScheduleScreen  from '../screens/ScheduleScreen'
 
-const SHELL_PAGES = ['home', 'browse', 'history', 'track', 'profile']
+import AdminScreen    from '../screens/AdminScreen'
+ 
+const SHELL_PAGES = ['home', 'browse', 'history', 'track', 'profile', 'admin']
 
 export default function AppRouter() {
   const { user, loading } = useAuth()
@@ -41,13 +43,15 @@ export default function AppRouter() {
   }
 
   if (SHELL_PAGES.includes(page)) {
+    const effectivePage = user?.is_staff && page !== 'admin' ? 'admin' : page
     return (
-      <AppShell page={page} navigate={navigate}>
-        {page === 'home'    && <HomeScreen    navigate={navigate} />}
-        {page === 'browse'  && <BrowseScreen  navigate={navigate} {...pageProps} />}
-        {page === 'history' && <HistoryScreen navigate={navigate} />}
-        {page === 'track'   && <TrackScreen   navigate={navigate} {...pageProps} />}
-        {page === 'profile' && <ProfileScreen navigate={navigate} />}
+      <AppShell page={effectivePage} navigate={navigate}>
+        {effectivePage === 'home'    && <HomeScreen    navigate={navigate} />}
+        {effectivePage === 'browse'  && <BrowseScreen  navigate={navigate} {...pageProps} />}
+        {effectivePage === 'history' && <HistoryScreen navigate={navigate} />}
+        {effectivePage === 'track'   && <TrackScreen   navigate={navigate} {...pageProps} />}
+        {effectivePage === 'profile' && <ProfileScreen navigate={navigate} />}
+        {effectivePage === 'admin'   && <AdminScreen   navigate={navigate} />}
       </AppShell>
     )
   }
@@ -55,5 +59,18 @@ export default function AppRouter() {
   if (page === 'order')    return <OrderScreen    navigate={navigate} {...pageProps} />
   if (page === 'schedule') return <ScheduleScreen navigate={navigate} {...pageProps} />
 
-  return <HomeScreen navigate={navigate} />
+  if (user?.is_staff) {
+    return (
+      <AppShell page="admin" navigate={navigate}>
+        <AdminScreen navigate={navigate} />
+      </AppShell>
+    )
+  }
+ 
+  return (
+    <AppShell page="home" navigate={navigate}>
+      <HomeScreen navigate={navigate} />
+    </AppShell>
+  )
 }
+ 
